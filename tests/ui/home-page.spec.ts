@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { HomePage } from '../pages/HomePage';
-import { ProductDetailPage } from '../pages/ProductDetailPage';
-import { ProductsPage } from '../pages/ProductsPage';
-import { CartPage } from '../pages/CartPage';
-import { AuthPage } from '../pages/AuthPage';
+import { HomePage } from '../../pages/HomePage';
+import { ProductDetailPage } from '../../pages/ProductDetailPage';
+import { ProductsPage } from '../../pages/ProductsPage';
+import { CartPage } from '../../pages/CartPage';
+import { AuthPage } from '../../pages/AuthPage';
 
 let homePage: HomePage;
 
