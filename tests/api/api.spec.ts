@@ -1,5 +1,5 @@
-import { test, expect, request } from '@playwright/test'
-import { ApiUserDetails, existinguser, validUserDetails } from '../../test-data/users';
+import { test, expect } from '@playwright/test'
+import { ApiUserDetails, existinguser } from '../../test-data/users';
 
 test.describe('Positive tests for /api/productsList', () => {
 
@@ -233,6 +233,84 @@ test.describe('Positive tests for /api/createAccount', () => {
                 password: ApiUserDetails.password
             }
         });
+        const deleteBody = await deleteResponse.json();
         expect(deleteResponse.status()).toBe(200);
+        expect(deleteBody.message).toBe('Account deleted!');
+    });
+});
+
+test.describe('Negative tests for /api/createAccount', () => {
+
+    test('Try to post without parameters', async ({ request }) => {
+        //post without parameters
+        const response = await request.post('/api/createAccount');
+        const body = await response.json();
+        expect(response.status()).toBe(200);
+
+        //verify response code and error message
+        expect(body.responseCode).toBe(400);
+        expect(body.message).toBe('Bad request, name parameter is missing in POST request.');
+    });
+
+    test('try to post with incomplete parameters', async ({ request }) => {
+        //post with destructured object
+        const {email, ...missingEmail} = ApiUserDetails;
+        const response = await request.post('/api/createAccount', {
+            form: missingEmail
+        });
+        const body = await response.json();
+
+        expect(response.status()).toBe(200); //still 200 status despite bad request
+        expect(body.responseCode).toBe(400);
+        expect(body.message).toBe('Bad request, email parameter is missing in POST request.');
+    });
+
+    test('try to post with incorrect parameter types', async ({ request }) => {
+        //post with incorrect parameters
+        const newUser = { ...ApiUserDetails, email: 3211};
+        const response = await request.post('/api/createAccount', {
+            form: newUser
+        });
+        const body = await response.json();
+        expect(response.status()).toBe(200);
+        console.log(body);
+
+        expect(body.responseCode).toBe(201);
+        expect(body.message).toBe('User created!');
+
+        //delete account for cleanup
+        const deleteResponse = await request.delete('/api/deleteAccount', {
+            form: {
+                email: newUser.email,
+                password: newUser.password
+            }
+        });
+        const deleteBody = await deleteResponse.json();
+        expect(deleteResponse.status()).toBe(200);
+        expect(deleteBody.message).toBe('Account deleted!');
+    });
+
+    test('try to post with month = 99', async ({ request }) => {
+        //try post with month = 99
+        const newUser = { ...ApiUserDetails, birth_month: '99'};
+        const response = await request.post('/api/createAccount', {
+            form: newUser
+        });
+        expect(response.status()).toBe(200);
+        const body = await response.json();
+
+        expect(body.responseCode).toBe(201);
+        expect(body.message).toBe('User created!');
+
+        //delete account for cleanup
+        const deleteResponse = await request.delete('/api/deleteAccount', {
+            form: {
+                email: ApiUserDetails.email,
+                password: ApiUserDetails.password
+            }
+        });
+        const deleteBody = await deleteResponse.json();
+        expect(deleteResponse.status()).toBe(200);
+        expect(deleteBody.message).toBe('Account deleted!');
     });
 });
