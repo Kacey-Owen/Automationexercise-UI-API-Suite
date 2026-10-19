@@ -312,5 +312,6 @@ test.describe('Negative tests for /api/createAccount', () => {
         const deleteBody = await deleteResponse.json();
         expect(deleteResponse.status()).toBe(200);
         expect(deleteBody.message).toBe('Account deleted!');
+        
     });
 });
