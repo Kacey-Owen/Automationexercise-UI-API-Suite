@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test'
+import { test } from '../../fixtures/api-fixtures';
+import { expect } from '@playwright/test';
 import { ApiUserDetails, existinguser } from '../../test-data/users';
 
 test.describe('Positive tests for /api/productsList', () => {
@@ -215,27 +216,29 @@ test.describe('Negative tests for /api/verifyLogin', () => {
 test.describe('Positive tests for /api/createAccount', () => {
 
     test('POST to create/register account', async ({ request }) => {
-        //POST to /api/createAccount
-        const response = await request.post('/api/createAccount', {
-            form: ApiUserDetails
-        });
-        expect(response.status()).toBe(200);
-        const body = await response.json();
+        try {
+            //POST to /api/createAccount
+            const response = await request.post('/api/createAccount', {
+                form: ApiUserDetails
+            });
+            expect(response.status()).toBe(200);
+            const body = await response.json();
 
-        //check for success code and message
-        expect(body.responseCode).toBe(201);
-        expect(body.message).toBe('User created!');
-
-        //delete account for cleanup
-        const deleteResponse = await request.delete('/api/deleteAccount', {
-            form: {
-                email: ApiUserDetails.email,
-                password: ApiUserDetails.password
-            }
-        });
-        const deleteBody = await deleteResponse.json();
-        expect(deleteResponse.status()).toBe(200);
-        expect(deleteBody.message).toBe('Account deleted!');
+            //check for success code and message
+            expect(body.responseCode).toBe(201);
+            expect(body.message).toBe('User created!');
+        } finally {
+            //delete account for cleanup
+            const deleteResponse = await request.delete('/api/deleteAccount', {
+                form: {
+                    email: ApiUserDetails.email,
+                    password: ApiUserDetails.password
+                }
+            });
+            const deleteBody = await deleteResponse.json();
+            expect(deleteResponse.status()).toBe(200);
+            expect(deleteBody.message).toBe('Account deleted!');
+        }
     });
 });
 
@@ -273,7 +276,6 @@ test.describe('Negative tests for /api/createAccount', () => {
         });
         const body = await response.json();
         expect(response.status()).toBe(200);
-        console.log(body);
 
         expect(body.responseCode).toBe(201);
         expect(body.message).toBe('User created!');
@@ -290,28 +292,50 @@ test.describe('Negative tests for /api/createAccount', () => {
         expect(deleteBody.message).toBe('Account deleted!');
     });
 
-    test('try to post with month = 99', async ({ request }) => {
-        //try post with month = 99
+    test('try to post with month = 99', async ({ request, deleteAccount, verifyLogin  }) => {
+        //create test user credentials
         const newUser = { ...ApiUserDetails, birth_month: '99'};
-        const response = await request.post('/api/createAccount', {
-            form: newUser
+
+        try {
+            //try post with month = 99
+            const response = await request.post('/api/createAccount', {
+                form: newUser
+            });
+            expect(response.status()).toBe(200);
+            const body = await response.json();
+
+            expect(body.responseCode).toBe(201);
+            expect(body.message).toBe('User created!');
+        } finally {
+            //cleanup
+            await deleteAccount(newUser);
+        }
+        
+        //verify account deletion
+        const result = await verifyLogin(newUser);
+        expect(result.responseCode).toBe(404);
+        expect(result.message).toBe('User not found!');
+    });
+});
+
+test.describe('Positive tests for /api/deleteAccount', () => {
+
+    test('delete an account with email and password', async ({ request, createAccount, verifyLogin }) => {
+        //setup test
+        await createAccount(ApiUserDetails);
+
+        //try to delete account
+        const response = await request.delete('/api/deleteAccount', {
+            form: ApiUserDetails
         });
         expect(response.status()).toBe(200);
         const body = await response.json();
 
-        expect(body.responseCode).toBe(201);
-        expect(body.message).toBe('User created!');
+        expect(body.responseCode).toBe(200);
+        expect(body.message).toBe('Account deleted!');
 
-        //delete account for cleanup
-        const deleteResponse = await request.delete('/api/deleteAccount', {
-            form: {
-                email: ApiUserDetails.email,
-                password: ApiUserDetails.password
-            }
-        });
-        const deleteBody = await deleteResponse.json();
-        expect(deleteResponse.status()).toBe(200);
-        expect(deleteBody.message).toBe('Account deleted!');
-        
+        const result = await verifyLogin(ApiUserDetails);
+        expect(result.responseCode).toBe(404);
+        expect(result.message).toBe('User not found!');
     });
 });
