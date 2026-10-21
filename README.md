@@ -145,7 +145,7 @@ npx playwright show-report
 
 6. No way to adjust quantity from the cart. Changing the quantity of an item already in the cart requires removing it and adding it again from the product page. There's no in-place quantity control on the cart itself.
 
-<h2 align="center">📖 ## API Findings</h2>
+<h2 align="center">📖 API Findings</h2>
 
 Testing the Automation Exercise API surfaced several behaviors worth noting:
 
