@@ -82,7 +82,7 @@ test.describe('Negative tests for /api/brandsList', () => {
 test.describe('positive tests for /api/searchProduct', () => {
 
     test('search for product', async ({ request }) => {
-        //search for prdocuts matching "top"
+        //search for prodcuts matching "top"
         const response = await request.post('/api/searchProduct', {
             form: {
                 search_product: 'top'
@@ -140,7 +140,7 @@ test.describe('Negative tests for /api/searchProduct', () => {
         expect(body.products.length).toBe(0);
     });
 
-    test('search for bad input', async ({ request }) => {
+    test('search without parameter', async ({ request }) => {
 
         //search for nonexistant product
         const response = await request.post('/api/searchProduct');
@@ -151,6 +151,38 @@ test.describe('Negative tests for /api/searchProduct', () => {
         expect(body.responseCode).toBe(400);
         expect(body.products).not.toBeDefined();
         expect(body.message).toBe('Bad request, search_product parameter is missing in POST request.');
+    });
+
+    test('search for empty string', async ({ request }) => {
+
+        //search for empty string
+        const response = await request.post('/api/searchProduct', {
+            form: {
+                search_product: ''
+            }
+        });
+        expect(response.status()).toBe(200);
+        const body = await response.json();
+
+        //check if response is 200 and products.length is > 0
+        expect(body.responseCode).toBe(200);
+        expect(body.products).toBeDefined();
+        expect(body.products.length).toBeGreaterThan(0);
+    });
+
+    test('try to GET using /api/searchProduct', async ({ request }) => {
+        //GET method on searchProduct endpoint
+        const response = await request.get('/api/searchProduct', {
+            form: {
+                search_product: 'top'
+            }
+        });
+        expect(response.status()).toBe(200);//200 status despite unsupported method
+        const body = await response.json();
+
+        //check for response code 400 and error message
+        expect(body.responseCode).toBe(405);
+        expect(body.message).toBe('This request method is not supported.');
     });
 });
 
@@ -215,7 +247,7 @@ test.describe('Negative tests for /api/verifyLogin', () => {
 
 test.describe('Positive tests for /api/createAccount', () => {
 
-    test('POST to create/register account', async ({ request }) => {
+    test('POST to create/register account', async ({ request, deleteAccount }) => {
         try {
             //POST to /api/createAccount
             const response = await request.post('/api/createAccount', {
@@ -229,15 +261,7 @@ test.describe('Positive tests for /api/createAccount', () => {
             expect(body.message).toBe('User created!');
         } finally {
             //delete account for cleanup
-            const deleteResponse = await request.delete('/api/deleteAccount', {
-                form: {
-                    email: ApiUserDetails.email,
-                    password: ApiUserDetails.password
-                }
-            });
-            const deleteBody = await deleteResponse.json();
-            expect(deleteResponse.status()).toBe(200);
-            expect(deleteBody.message).toBe('Account deleted!');
+            await deleteAccount(ApiUserDetails);
         }
     });
 });
@@ -268,28 +292,24 @@ test.describe('Negative tests for /api/createAccount', () => {
         expect(body.message).toBe('Bad request, email parameter is missing in POST request.');
     });
 
-    test('try to post with incorrect parameter types', async ({ request }) => {
-        //post with incorrect parameters
-        const newUser = { ...ApiUserDetails, email: 3211};
-        const response = await request.post('/api/createAccount', {
-            form: newUser
-        });
-        const body = await response.json();
-        expect(response.status()).toBe(200);
+    test('try to post with incorrect parameter', async ({ request, deleteAccount }) => {
+        
+        const newUser = { ...ApiUserDetails, email: '3211'};
 
-        expect(body.responseCode).toBe(201);
-        expect(body.message).toBe('User created!');
+        try {
+            //post with incorrect parameters
+            const response = await request.post('/api/createAccount', {
+                form: newUser
+            });
+            const body = await response.json();
+            expect(response.status()).toBe(200);
 
-        //delete account for cleanup
-        const deleteResponse = await request.delete('/api/deleteAccount', {
-            form: {
-                email: newUser.email,
-                password: newUser.password
-            }
-        });
-        const deleteBody = await deleteResponse.json();
-        expect(deleteResponse.status()).toBe(200);
-        expect(deleteBody.message).toBe('Account deleted!');
+            expect(body.responseCode).toBe(201);
+            expect(body.message).toBe('User created!');
+        } finally {
+            //cleanup
+            await deleteAccount(newUser);
+        }
     });
 
     test('try to post with month = 99', async ({ request, deleteAccount, verifyLogin  }) => {
