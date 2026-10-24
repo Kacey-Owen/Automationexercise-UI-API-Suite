@@ -154,3 +154,4 @@ Testing the Automation Exercise API surfaced several behaviors worth noting:
 3. **No input validation on account creation.** An invalid email (`3211`) and an impossible birth month (`99`) both return `201 User created!`.
 4. **Missing-parameter errors report only the first missing field**, so clients must fix errors one at a time.
 5. **Empty search results** return `200` with an empty `products` array rather than an error.
+6. **Inconsistent variable names** between endpoints. Using GET method on /api/getUserDetailByEmail uses birth_day instead of birth_date, first_name instead of firstname, last_name instead of lastname like the other endpoints do 
