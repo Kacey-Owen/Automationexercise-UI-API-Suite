@@ -151,7 +151,6 @@ Testing the Automation Exercise API surfaced several behaviors worth noting:
 
 1. **Errors live in the body, not the HTTP status.** Every response returns HTTP 200; the real result is in `responseCode`.
 2. **Unsupported methods return 200 with `responseCode: 405`** (for example `POST /api/productsList` and `DELETE /api/verifyLogin`).
-3. **No input validation on account creation.** An invalid email (`3211`) and an impossible birth month (`99`) both return `201 User created!`.
+3. **No input validation on account creation.** An invalid email (`3211`) and an impossible birth month (`99`) both return HTTP 200 with responseCode `201` with `User created!` message.
 4. **Missing-parameter errors report only the first missing field**, so clients must fix errors one at a time.
-5. **Empty search results** return `200` with an empty `products` array rather than an error.
-6. **Inconsistent variable names** between endpoints. Using GET method on /api/getUserDetailByEmail uses birth_day instead of birth_date, first_name instead of firstname, last_name instead of lastname like the other endpoints do 
+5. **Inconsistent variable names** between endpoints. Using GET method on /api/getUserDetailByEmail uses birth_day instead of birth_date, first_name instead of firstname, last_name instead of lastname like the other endpoints do 
