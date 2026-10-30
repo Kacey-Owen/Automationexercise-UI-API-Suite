@@ -1,10 +1,11 @@
 import { test } from '../../fixtures/api-fixtures';
 import { expect } from '@playwright/test';
-import { ApiUserDetails } from '../../test-data/users';
+import { ApiUserDetails, existinguser } from '../../test-data/users';
 
 test.describe('Positive tests for /api/createAccount', () => {
 
     test('POST to create/register account', async ({ request, deleteAccount }) => {
+        
         try {
             //POST to /api/createAccount
             const response = await request.post('/api/createAccount', {
@@ -21,9 +22,51 @@ test.describe('Positive tests for /api/createAccount', () => {
             await deleteAccount(ApiUserDetails);
         }
     });
+
+    test('Create account and verify using verifyLogin', async ({ request, deleteAccount, verifyLogin }) => {
+        //create newUser
+        const newUser = { ...ApiUserDetails, email: `test.${Date.now()}@example.com` };
+
+        try{
+            //POST to /api/createAccount
+            const response = await request.post('/api/createAccount', {
+                form: newUser
+            });
+            expect(response.status()).toBe(200);
+            const body = await response.json();
+
+            //verify login
+            const result = await verifyLogin(newUser);
+            expect(result.responseCode).toBe(200);
+            expect(result.message).toBe('User exists!');
+        } finally {
+            //cleanup
+            await deleteAccount(newUser);
+        }
+    });
 });
 
 test.describe('Negative tests for /api/createAccount', () => {
+
+    test('/api/createAccount rejects duplicate accounts', async ({ request, createAccount, deleteAccount }) => {
+        //create account then try to create the same account after
+        await createAccount(ApiUserDetails);
+        try {
+            //Post using existing user
+            const response = await request.post('/api/createAccount', {
+                form: ApiUserDetails
+            });
+            expect(response.status()).toBe(200);
+            const body = await response.json();
+
+            //400 responseCode and error message
+            expect(body.responseCode).toBe(400);
+            expect(body.message).toBe('Email already exists!');
+        } finally {
+            //cleanup
+            await deleteAccount(ApiUserDetails);
+        }
+    });
 
     test('Try to post without parameters', async ({ request }) => {
         //post without parameters

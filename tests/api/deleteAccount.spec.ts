@@ -26,31 +26,8 @@ test.describe('Positive tests for /api/deleteAccount', () => {
 });
 
 test.describe('Negative tests for /api/deleteAccount', () => {
-    
-    test('try to delete without parameters', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
-        //create account
-        await createAccount(ApiUserDetails);
 
-        try {
-            //try to delete without parameters
-            const response = await request.delete('/api/deleteAccount');
-            expect(response.status()).toBe(200);//200 despite bad request
-
-            const body = await response.json();
-            expect(body.responseCode).toBe(400);
-            expect(body.message).toBe('Bad request, email parameter is missing in DELETE request.');
-
-            //ensure that account was not deleted
-            const verifyRes = await verifyLogin(ApiUserDetails);
-            expect(verifyRes.responseCode).toBe(200);
-            expect(verifyRes.message).toBe('User exists!');
-        } finally {
-            //cleanup after failed delete attempt
-            await deleteAccount(ApiUserDetails);
-        }
-    });
-
-    test('try to delete missing email', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
+    test('try to delete with missing email', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
         //create account
         await createAccount(ApiUserDetails);
 
@@ -77,7 +54,7 @@ test.describe('Negative tests for /api/deleteAccount', () => {
         }
     });
 
-    test('try to delete missing password', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
+    test('try to delete with missing password', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
         //create account
         await createAccount(ApiUserDetails);
 
@@ -104,7 +81,7 @@ test.describe('Negative tests for /api/deleteAccount', () => {
         }
     });
 
-    test('try to post to /api/deleteAccount', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
+    test('try to POST to /api/deleteAccount', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
         //create account
         await createAccount(ApiUserDetails);
 

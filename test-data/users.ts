@@ -42,7 +42,20 @@ export const invalidUser = {
 }
 
 export const existinguser = {
-    name: 'Jack',
+    name: 'Fake User',
     email: 'fake123@fake.com',
+    title: 'Mr',
+    birth_day: '1',
+    birth_month: '1',
+    birth_year: '2000',
+    first_name: 'Fake',
+    last_name: 'User',
+    company: '',
+    address1: '123 random st',
+    address2: '',
+    country: 'United States',
+    state: 'Colorado',
+    city: 'Boulder',
+    zipcode: '80304',
     password: 'password123'
 }
