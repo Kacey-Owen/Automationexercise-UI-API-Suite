@@ -1,3 +1,11 @@
+import { randomUUID } from "node:crypto";
+
+function getRandomEmail() {
+    return `user${randomUUID().slice(0,8)}@website.com`;
+}
+
+export type ApiUser = ReturnType<typeof getApiUserDetails>;
+
 export const validUserDetails = {
     fullName: 'Jack Allen',
     email: `user${Date.now()}@website.com`,
@@ -16,9 +24,9 @@ export const validUserDetails = {
     expirationYear: '2042'
 }
 
-export const ApiUserDetails = {
+export const getApiUserDetails = () => ({
     name: 'Jack Allen',
-    email: `user${Date.now()}@website.com`,
+    email: getRandomEmail(),
     password: 'password123',
     title: 'Mr',
     birth_date: '31',
@@ -34,14 +42,14 @@ export const ApiUserDetails = {
     state: 'Colorado',
     city: 'Random City',
     mobile_number: '5555555555'
-}
+});
 
 export const invalidUser = {
     email: 'wronguser@website.com',
     password: 'wrongpassword123'
 }
 
-export const existinguser = {
+export const existingUser = {
     name: 'Fake User',
     email: 'fake123@fake.com',
     title: 'Mr',

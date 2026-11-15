@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { existinguser } from '../../test-data/users';
+import { existingUser } from '../../test-data/users';
 
 test.describe('Positive tests for /api/verifyLogin', () => {
 
@@ -7,8 +7,8 @@ test.describe('Positive tests for /api/verifyLogin', () => {
         //post with valid email and password
         const response = await request.post('/api/verifyLogin', {
             form: {
-                email: existinguser.email,
-                password: existinguser.password
+                email: existingUser.email,
+                password: existingUser.password
             }
         });
         expect(response.status()).toBe(200);
@@ -26,7 +26,7 @@ test.describe('Negative tests for /api/verifyLogin', () => {
         //try to post without email
         const response = await request.post('/api/verifyLogin', {
             form: {
-                password: existinguser.password
+                password: existingUser.password
             }
         });
         expect(response.status()).toBe(200);

@@ -1,15 +1,17 @@
 import { test } from '../../fixtures/api-fixtures';
 import { expect } from '@playwright/test';
-import { ApiUserDetails, existinguser } from '../../test-data/users';
+import { getApiUserDetails, existingUser } from '../../test-data/users';
 
 test.describe('Positive tests for /api/createAccount', () => {
 
     test('POST to create/register account', async ({ request, deleteAccount }) => {
-        
+        //create user variable
+        const user = getApiUserDetails();
+
         try {
             //POST to /api/createAccount
             const response = await request.post('/api/createAccount', {
-                form: ApiUserDetails
+                form: user
             });
             expect(response.status()).toBe(200);
             const body = await response.json();
@@ -19,13 +21,14 @@ test.describe('Positive tests for /api/createAccount', () => {
             expect(body.message).toBe('User created!');
         } finally {
             //delete account for cleanup
-            await deleteAccount(ApiUserDetails);
+            await deleteAccount(user);
         }
     });
 
     test('Create account and verify using verifyLogin', async ({ request, deleteAccount, verifyLogin }) => {
         //create newUser
-        const newUser = { ...ApiUserDetails, email: `test.${Date.now()}@example.com` };
+        const user = getApiUserDetails();
+        const newUser = { ...user, email: `test.${Date.now()}@example.com` };
 
         try{
             //POST to /api/createAccount
@@ -50,11 +53,12 @@ test.describe('Negative tests for /api/createAccount', () => {
 
     test('/api/createAccount rejects duplicate accounts', async ({ request, createAccount, deleteAccount }) => {
         //create account then try to create the same account after
-        await createAccount(ApiUserDetails);
+        const user = getApiUserDetails();
+        await createAccount(user);
         try {
             //Post using existing user
             const response = await request.post('/api/createAccount', {
-                form: ApiUserDetails
+                form: user
             });
             expect(response.status()).toBe(200);
             const body = await response.json();
@@ -64,7 +68,7 @@ test.describe('Negative tests for /api/createAccount', () => {
             expect(body.message).toBe('Email already exists!');
         } finally {
             //cleanup
-            await deleteAccount(ApiUserDetails);
+            await deleteAccount(user);
         }
     });
 
@@ -81,7 +85,8 @@ test.describe('Negative tests for /api/createAccount', () => {
 
     test('try to post with incomplete parameters', async ({ request }) => {
         //post with destructured object
-        const {email, ...missingEmail} = ApiUserDetails;
+        const user = getApiUserDetails();
+        const {email, ...missingEmail} = user;
         const response = await request.post('/api/createAccount', {
             form: missingEmail
         });
@@ -93,8 +98,9 @@ test.describe('Negative tests for /api/createAccount', () => {
     });
 
     test('try to post with incorrect parameter', async ({ request, deleteAccount }) => {
-        
-        const newUser = { ...ApiUserDetails, email: '3211'};
+        //create user variables
+        const user = getApiUserDetails();
+        const newUser = { ...user, email: '3211'};
 
         try {
             //post with incorrect parameters
@@ -114,7 +120,8 @@ test.describe('Negative tests for /api/createAccount', () => {
 
     test('try to post with month = 99', async ({ request, deleteAccount, verifyLogin  }) => {
         //create test user credentials
-        const newUser = { ...ApiUserDetails, birth_month: '99'};
+        const user = getApiUserDetails();
+        const newUser = { ...user, birth_month: '99'};
 
         try {
             //try post with month = 99

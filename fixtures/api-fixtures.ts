@@ -1,9 +1,9 @@
 import { test as base, expect } from '@playwright/test';
-import { ApiUserDetails } from '../test-data/users';
+import { type ApiUser } from '../test-data/users';
 import { getUserDetailShape } from '../test-data/params';
 
 type ApiFixtures = {
-    createAccount: (account: typeof ApiUserDetails) => Promise<void>;
+    createAccount: (account: ApiUser) => Promise<void>;
     deleteAccount: (account: { email: string; password: string }) => Promise<void>;
     verifyLogin: (account: { email: string; password: string }) => Promise<{
         responseCode: number;
@@ -18,7 +18,7 @@ type ApiFixtures = {
 export const test = base.extend<ApiFixtures>({
     createAccount: async ({ request }, use ) => {
 
-        const createAccount = async (account: typeof ApiUserDetails): Promise<void> => {
+        const createAccount = async (account: ApiUser): Promise<void> => {
             const response = await request.post('/api/createAccount', {
                 form: account
             });
@@ -75,7 +75,7 @@ export const test = base.extend<ApiFixtures>({
 
         const getAccount = async (account: { email: string }) : Promise<{responseCode: number, user: typeof getUserDetailShape}> => {
             const response = await request.get('/api/getUserDetailByEmail', {
-                params: account
+                params: { email: account.email}
             });
             expect(response.status(), 'check up: getAccount failed').toBe(200);
             const body = await response.json();

@@ -1,6 +1,6 @@
 import { test } from '../../fixtures/api-fixtures';
 import { expect } from '@playwright/test';
-import { ApiUserDetails, existinguser } from '../../test-data/users';
+import { getApiUserDetails, existingUser } from '../../test-data/users';
 import { getUserDetailShape } from '../../test-data/params';
 
 test.describe('Positive tests for /api/getUserDetailByEmail', () => {
@@ -9,7 +9,7 @@ test.describe('Positive tests for /api/getUserDetailByEmail', () => {
         //get user by email
         const response = await request.get('/api/getUserDetailByEmail', {
             params: {
-                email: existinguser.email
+                email: existingUser.email
             }
         });
         expect(response.status()).toBe(200);
@@ -21,19 +21,20 @@ test.describe('Positive tests for /api/getUserDetailByEmail', () => {
 
         //destructure body.user and existinguser to compare
         const {id, ...user1} = body.user;
-        const {password, ...user2} = existinguser;
+        const {password, ...user2} = existingUser;
         expect(user1).toEqual(user2);
     });
 
     test('create an account and get details', async ({ request, createAccount, deleteAccount, verifyLogin }) => {
         //create account
-        await createAccount(ApiUserDetails);
+        const user = getApiUserDetails();
+        await createAccount(user);
 
         try {
             //get user details
             const response = await request.get('/api/getUserDetailByEmail', {
             params: {
-                email: ApiUserDetails.email
+                email: user.email
             }
         });
         expect(response.status()).toBe(200);
@@ -48,7 +49,7 @@ test.describe('Positive tests for /api/getUserDetailByEmail', () => {
         //first_name/last_name/birth_day
         //variable names inconsistent between endpoints
         const {id, ...user1} = body.user;
-        const {password, mobile_number, firstname, lastname, birth_date, ...temp} = ApiUserDetails;
+        const {password, mobile_number, firstname, lastname, birth_date, ...temp} = user;
         const user2 = {
             ...temp,
             first_name: firstname,
@@ -59,11 +60,11 @@ test.describe('Positive tests for /api/getUserDetailByEmail', () => {
 
         } finally {
             //cleanup
-            await deleteAccount(ApiUserDetails);
+            await deleteAccount(user);
         }
 
         //verify deletion
-        const result = await verifyLogin(ApiUserDetails);
+        const result = await verifyLogin(user);
         expect(result.responseCode).toBe(404);
         expect(result.message).toBe('User not found!');
     });
@@ -116,7 +117,7 @@ test.describe('Negative tests for /api/getUserDetailByEmail', () => {
         //try to POST
         const response = await request.post('/api/getUserDetailByEmail', {
             params: {
-                email: existinguser.email
+                email: existingUser.email
             }
         });
         expect(response.status()).toBe(200);
@@ -130,7 +131,7 @@ test.describe('Negative tests for /api/getUserDetailByEmail', () => {
         //try to DELETE
         const response = await request.delete('/api/getUserDetailByEmail', {
             params: {
-                email: existinguser.email
+                email: existingUser.email
             }
         });
         expect(response.status()).toBe(200);
@@ -144,7 +145,7 @@ test.describe('Negative tests for /api/getUserDetailByEmail', () => {
         //try to PUT
         const response = await request.put('/api/getUserDetailByEmail', {
             params: {
-                email: existinguser.email
+                email: existingUser.email
             }
         });
         expect(response.status()).toBe(200);
@@ -158,7 +159,7 @@ test.describe('Negative tests for /api/getUserDetailByEmail', () => {
         //try to PATCH
         const response = await request.patch('/api/getUserDetailByEmail', {
             params: {
-                email: existinguser.email
+                email: existingUser.email
             }
         });
         expect(response.status()).toBe(405);
